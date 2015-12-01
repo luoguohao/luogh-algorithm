@@ -25,7 +25,7 @@ public class MatrixFactorization {
         printMatrix(matrixP,"Matrix P");
         printMatrix(matrixQ,"Matrix Q");
 
-        executeMatrixFactorization();
+        executeMatrixFactorization(matrixR,matrixP,matrixQ);
     }
 
     private static void executeMatrixFactorization(float[][] R,float[][] P,float[][] Q){
