@@ -35,7 +35,7 @@ public class MatrixFactorization {
 
     private static void executeMatrixFactorization(float[][] R,float[][] P,float[][] Q,int kDims,long iterTimes){
 
-        while(true){
+        while(iterTimes > 0){
 
             float tempVariance = 0.00f;
             for(int i=0;i<R.length;i++){
@@ -46,10 +46,11 @@ public class MatrixFactorization {
                         //calculate tempR=SUM(PikQkj)
                             for(int k=0;k<kDims;k++){
                                 tempR += P[i][k]*Q[k][j];
+                                tempVariance += 0.5*BETA*(Math.pow(P[i][k],2)+Math.pow(Q[k][j],2));
                             }
-//                        // caculate Variance
+                        // caculate Variance
                         tempVariance += Math.pow((R[i][j] - tempR),2);
-
+                        System.out.println("R[i][j] :"+R[i][j]+" tempR :"+ tempR);
                         //update p`,q`
                         for(int m=0;m<kDims;m++){
                             P[i][m] = P[i][m] + ALPHA_STEP*(2*tempR*Q[m][j]-BETA*P[i][m]);
@@ -69,8 +70,11 @@ public class MatrixFactorization {
                 printMatrix(finalR,"\t the final matrix R is:");
                 break;
             } else {
-                System.out.println("final answer still not find yet, current iterateTimes is:"+iterTimes+" and current" +
-                        "Variance is :"+tempVariance);
+                if(iterTimes % 10 == 0) {
+                    System.out.println("final answer still not find yet, current iterateTimes is:"+iterTimes+" and current" +
+                            "Variance is :"+tempVariance);
+                }
+
             }
             iterTimes--;
         }
