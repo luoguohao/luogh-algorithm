@@ -129,6 +129,7 @@ public class MatrixFactorization {
 
     /**
      * the decompostionMatrix initial datas is simply make randomly
+     * 0~10
      * @param xDim
      * @param yDim
      * @return
@@ -138,7 +139,7 @@ public class MatrixFactorization {
         float[][] compositionMatrix = new float[xDim][yDim];
         for(int i=0;i<xDim;i++) {
             for(int j=0;j<yDim;j++) {
-                compositionMatrix[i][j] = random.nextFloat()/10.0F;
+                compositionMatrix[i][j] = random.nextFloat()*10.0F;
             }
         }
 
