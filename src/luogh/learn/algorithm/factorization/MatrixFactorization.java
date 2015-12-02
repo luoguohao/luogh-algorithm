@@ -9,10 +9,11 @@ public class MatrixFactorization {
     private static final int X_DIMENSIONS = 5;
     private static final int Y_DIMENSIONS = 4;
     private static final int K_DIMENSIONS = 2;
-    private static final int ITERATE_TIMES = 5000;
+    private static final int ITERATE_TIMES = 5000000;
 
     private static final float ALPHA_STEP = 0.0002F;
     private static final float BETA = 0.02F;
+    private static final float LOSS_RATE = 0.001F;
 
 
     public static void main(String args[]) {
@@ -25,11 +26,76 @@ public class MatrixFactorization {
         printMatrix(matrixP,"Matrix P");
         printMatrix(matrixQ,"Matrix Q");
 
-        executeMatrixFactorization(matrixR,matrixP,matrixQ);
+        System.out.println("begin to execute MatrixFactorization.");
+        long startTime = System.currentTimeMillis();
+        executeMatrixFactorization(matrixR,matrixP,matrixQ,K_DIMENSIONS,ITERATE_TIMES);
+        long endTime = System.currentTimeMillis();
+        System.out.println("execute MatrixFactorization succeed,cost time:"+(endTime-startTime)/1000.00f+"s");
     }
 
-    private static void executeMatrixFactorization(float[][] R,float[][] P,float[][] Q){
+    private static void executeMatrixFactorization(float[][] R,float[][] P,float[][] Q,int kDims,long iterTimes){
 
+        while(true){
+
+            float tempVariance = 0.00f;
+            for(int i=0;i<R.length;i++){
+                for(int j=0;j<R[i].length;j++){
+
+                    if(R[i][j]>0){ //original valid value
+                        float tempR= 0.00f;
+                        //calculate tempR=SUM(PikQkj)
+                            for(int k=0;k<kDims;k++){
+                                tempR += P[i][k]*Q[k][j];
+                            }
+//                        // caculate Variance
+                        tempVariance += Math.pow((R[i][j] - tempR),2);
+
+                        //update p`,q`
+                        for(int m=0;m<kDims;m++){
+                            P[i][m] = P[i][m] + ALPHA_STEP*(2*tempR*Q[m][j]-BETA*P[i][m]);
+                            Q[m][j] = Q[m][j] + ALPHA_STEP*(2*tempR*P[i][m]-BETA*Q[m][j]);
+                        }
+
+                    }
+                }
+            }
+
+            //after every iterate , check variance loss is expected
+            if(tempVariance<LOSS_RATE){
+                float[][] finalR = matrixMulti(P,Q);
+                System.out.println("we alrealy get the final answer");
+                printMatrix(P,"\t the final matrix P is:");
+                printMatrix(Q,"\t the final matrix Q is:");
+                printMatrix(finalR,"\t the final matrix R is:");
+                break;
+            } else {
+                System.out.println("final answer still not find yet, current iterateTimes is:"+iterTimes+" and current" +
+                        "Variance is :"+tempVariance);
+            }
+            iterTimes--;
+        }
+
+    }
+
+    private static float[][] matrixMulti(float[][] P,float [][] Q){
+        int iDim = P.length;
+        int kQDim = P[0].length;
+        int kPDim = Q.length;
+        int jDim = Q[0].length;
+        float[][] R = new float[iDim][jDim];
+        if(kPDim != kQDim){
+            throw new RuntimeException("this two Matrix cant not multilate ,as its Dim is not equals");
+        }
+
+        for(int i=0;i<iDim;i++){
+            for(int j=0;j<jDim;j++){
+                for(int k=0;k<kQDim;k++){
+                    R[i][j] += P[i][k]*Q[k][j];
+                }
+            }
+        }
+
+        return R;
     }
     private static float[][] initPrototypeMatrix(){
         float[][] originalMatrix = new float[X_DIMENSIONS][Y_DIMENSIONS];
