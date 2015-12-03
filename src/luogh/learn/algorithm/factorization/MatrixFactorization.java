@@ -8,12 +8,12 @@ import java.util.Random;
 public class MatrixFactorization {
     private static final int X_DIMENSIONS = 5;
     private static final int Y_DIMENSIONS = 4;
-    private static final int K_DIMENSIONS = 2;
+    private static final int K_DIMENSIONS = 3;
     private static final int ITERATE_TIMES = 5000000;
 
     private static final float ALPHA_STEP = 0.0002F;
-    private static final float BETA = 0.02F;
-    private static final float LOSS_RATE = 0.001F;
+    private static final float BETA = 0.0003F;
+    private static final float LOSS_RATE = 0.03F;
 
 
     public static void main(String args[]) {
@@ -35,7 +35,7 @@ public class MatrixFactorization {
 
     private static void executeMatrixFactorization(float[][] R,float[][] P,float[][] Q,int kDims,long iterTimes){
 
-        while(iterTimes > 0){
+        while(iterTimes>0){
 
             float tempVariance = 0.00f;
             for(int i=0;i<R.length;i++){
@@ -44,17 +44,17 @@ public class MatrixFactorization {
                     if(R[i][j]>0){ //original valid value
                         float tempR= 0.00f;
                         //calculate tempR=SUM(PikQkj)
-                            for(int k=0;k<kDims;k++){
-                                tempR += P[i][k]*Q[k][j];
-                                tempVariance += 0.5*BETA*(Math.pow(P[i][k],2)+Math.pow(Q[k][j],2));
-                            }
+                        for(int k=0;k<kDims;k++){
+//                          System.out.println("P[i][k]:"+P[i][k]+" Q[k][j]:"+Q[k][j]);
+                            tempR += P[i][k]*Q[k][j];
+                            tempVariance += 0.5*BETA*(Math.pow(P[i][k],2)+Math.pow(Q[k][j],2));
+                        }
                         // caculate Variance
                         tempVariance += Math.pow((R[i][j] - tempR),2);
-                        System.out.println("R[i][j] :"+R[i][j]+" tempR :"+ tempR);
                         //update p`,q`
                         for(int m=0;m<kDims;m++){
-                            P[i][m] = P[i][m] + ALPHA_STEP*(2*tempR*Q[m][j]-BETA*P[i][m]);
-                            Q[m][j] = Q[m][j] + ALPHA_STEP*(2*tempR*P[i][m]-BETA*Q[m][j]);
+                            P[i][m] += ALPHA_STEP*(2*(R[i][j] - tempR)*Q[m][j] - BETA*P[i][m]);
+                            Q[m][j] += ALPHA_STEP*(2*(R[i][j] - tempR)*P[i][m] - BETA*Q[m][j]);
                         }
 
                     }
@@ -70,8 +70,8 @@ public class MatrixFactorization {
                 printMatrix(finalR,"\t the final matrix R is:");
                 break;
             } else {
-                if(iterTimes % 10 == 0) {
-                    System.out.println("final answer still not find yet, current iterateTimes is:"+iterTimes+" and current" +
+                if(iterTimes % 100 == 0) {
+                    System.out.println("final answer still not find yet, current iterateTimes is:"+(ITERATE_TIMES-iterTimes)+" and current" +
                             "Variance is :"+tempVariance);
                 }
 
@@ -135,11 +135,11 @@ public class MatrixFactorization {
      * @return
      */
     private static  float[][] initDecompositionMatrix(int xDim,int yDim){
-        final Random random = new Random();
+        final Random random = new Random(1L);
         float[][] compositionMatrix = new float[xDim][yDim];
         for(int i=0;i<xDim;i++) {
             for(int j=0;j<yDim;j++) {
-                compositionMatrix[i][j] = random.nextFloat()*10.0F;
+                compositionMatrix[i][j] = random.nextFloat()*10;
             }
         }
 
