@@ -96,6 +96,7 @@ public class MatrixFactorization {
                 for(int k=0;k<kQDim;k++){
                     R[i][j] += P[i][k]*Q[k][j];
                 }
+				R[i][j] = Math.abs(R[i][j]); // for the sake of negative number
             }
         }
 
