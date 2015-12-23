@@ -285,18 +285,70 @@ public class MatrixUtil {
 	}
 
 	/**
-	 * compute the rank of the matrix using the method : minor matrix of order k
+	 * compute the rank of the matrix using Gaussian Elimination method
 	 * @return
 	 */
-	public static int rank(double[][] matrix){
+	public static int rank(double[] matrix,int xDim,int yDim){
 		if(matrix == null){
 			throw new RuntimeException("matrix cant be null");
 		}
-		int xDim = matrix.length;
-		int yDim = matrix[0].length;
-		int highestOrderMinorMatrix = Math.min(xDim,yDim);
+
+
 		return 0;
 	}
+
+    private static int guassianEstimate(double[] matrix,int xDim,int yDim){
+        //first,choose the row num which first value is nonzero and max
+        int maxElemPosition = maxElemPositionChoose(matrix,xDim,yDim,0);
+        // then according to the maxElemIndex,begin to transform the remaining row
+        if(maxElemPosition == -1){
+            System.out.println("this is a zero metrix, and its rank is 0");
+            return 0;
+        } else {
+            int mxDim = maxElemPosition/yDim;
+            int myDim = maxElemPosition%yDim;
+            double maxValue = matrix[mxDim*yDim+myDim];
+            //obtain other row with the relevant non-zero column
+            double tmp ;
+            double factor;
+            for(int i=0;i<xDim;i++) {
+                tmp = matrix[i*yDim+myDim];
+                if(i!=mxDim && tmp !=0) { //the non-zero row
+                    factor = (-1)* tmp/maxValue;
+                    for(int j=myDim;j<yDim;j++){
+                        matrix[i*yDim+j] += (matrix[mxDim*yDim+j] * factor);
+                    }
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private static int maxElemPositionChoose(double[] matrix,int xDim,int yDim,int startColumnIndex){
+        double maxValue = 0;
+        double tempValue;
+        int maxRowIndex = 0;
+        for(int i=0;i<xDim;i++){
+            tempValue = Math.abs(matrix[i*yDim+startColumnIndex]);
+            if( tempValue > maxValue) {
+                maxValue = tempValue;
+                maxRowIndex = i;
+            }
+        }
+        //all the first elem in each row is zero,we should consider the next column value.
+        if(maxValue == 0) {
+            if((++startColumnIndex)<=yDim-1){
+                return maxElemPositionChoose(matrix,xDim,yDim,startColumnIndex);
+            } else {
+                // all columns max value is zero. that means its a zero matrix.
+                return -1;
+            }
+        } else {
+            System.out.println("max value : "+matrix[maxRowIndex*yDim+startColumnIndex]);
+            return maxRowIndex*yDim+startColumnIndex;
+        }
+    }
 
 	public static void main(String args[]) {
 		int[] ordinal = {1,2,3,4,5,6,7};
@@ -330,6 +382,12 @@ public class MatrixUtil {
 		printMatrix(adjointMatrix(matrix1), "adjoint matrix");
 
 		printMatrix(inverseMatrix(matrix1),"inverse matrix");
+
+        //calculate where is the max elements position(x,y) in matrix
+//        double[] matrix2 = {0,0,-1,8,0,0,2,-11,0,0,2,-3};
+        double[] matrix2 = {0,0,0,0,0,0,0,0,0,0,0,0,0};
+        int index = maxElemPositionChoose(matrix2,3,4,0);
+        System.out.println("ROW:"+((index/4))+" COLUMN:"+(index%4));
 	}
 
 }
