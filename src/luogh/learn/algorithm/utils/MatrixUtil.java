@@ -292,6 +292,9 @@ public class MatrixUtil {
 		if(matrix == null){
 			throw new RuntimeException("matrix cant be null");
 		}
+
+		printMatrix(array2Matrix(matrix,xDim,yDim),"Original Matrix");
+
 		guassianEstimate(matrix,xDim,yDim,0);
 
 		printMatrix(array2Matrix(matrix,xDim,yDim),"Row-reduced echelon matrix");
@@ -330,32 +333,31 @@ public class MatrixUtil {
 		for(int i=0;i<xDim;i++){
 			tempValue = Math.abs(matrix[i*yDim+startColumnIndex]);
 			// we also need to check the column before startColumnIndex elem is all zero ,if not ,skip it.
-			boolean allZero = true;
+			boolean allZeroBefore = true;
 			for(int j=0;j<startColumnIndex;j++){
 				if(matrix[i*yDim+j] != 0)  {
-					allZero = false;
+					allZeroBefore = false;
 					break;
 				}
 			}
-			if( tempValue > maxValue && allZero) {
+			if( tempValue > maxValue && allZeroBefore) {
 				maxValue = tempValue;
 				maxRowIndex = i;
 			}
 		}
 		//all the first elem in each row is zero,we should consider the next column value.
 		if(maxValue == 0) {
+			// current column`s max element is zero.
+//			System.out.println("current column "+startColumnIndex+" `s max element is zero!");
 			if((++startColumnIndex)<=yDim-1){
 				guassianEstimate(matrix, xDim, yDim, startColumnIndex);
-			} else {
-				// all columns max value is zero. that means its a zero matrix.
-				System.out.println("all columns max value is zero. that means its a zero matrix.");
 			}
 		} else {
 			int maxElemPosition = maxRowIndex*yDim+startColumnIndex;
 			int mxDim = maxElemPosition/yDim;
 			int myDim = maxElemPosition%yDim;
 
-			System.out.println("max value : "+maxValue +" and it`s position is :("+mxDim+","+myDim+")");
+//			System.out.println("max value : "+maxValue +" and it`s position is :("+mxDim+","+myDim+")");
 
 			//obtain other row with the relevant non-zero column
 			double tmp ;
@@ -543,18 +545,23 @@ public class MatrixUtil {
         System.out.println("ROW:"+((index/4))+" COLUMN:"+(index%4));
 
 //		double[] matrix3 = {1,2,3,4,5,6,6,8,9};
-		double[] matrix3 = {0,0,-1,8,0,0,2,-11,0,0,2,-3};
-		guassianEstimate(matrix3,3,4,0);
-		printMatrix(array2Matrix(matrix3,3,4),"row-reduced echelon matrix");
+//		double[] matrix3 = {0,0,1,8,0,0,2,1,0,0,2,3,
+//							1,2,5,4,2,5,6,7,4,3,2,4,
+//							4,3,3,2,5,6,3,3,4,3,3,3};
+		double[] matrix3 = {0,0,1,8,0,0,
+							1,2,5,4,2,5,
+							4,3,3,2,5,6};
+//		guassianEstimate(matrix3,3,12,0);
+//		printMatrix(array2Matrix(matrix3,3,12),"row-reduced echelon matrix");
+//
+//		Double[] divisors = findDivisors(8);
+//		for(int i =0;i<divisors.length;i++){
+//			System.out.print(divisors[i]+",");
+//		}
+//		System.out.println();
+//		System.out.println(maxGCD(new double[]{0, 0, 8, 0}));
 
-		Double[] divisors = findDivisors(8);
-		for(int i =0;i<divisors.length;i++){
-			System.out.print(divisors[i]+",");
-		}
-		System.out.println();
-		System.out.println(maxGCD(new double[]{0, 0, 8, 0}));
-
-		System.out.println("rank : "+rank(matrix3,3,4));
+		System.out.println("rank : "+rank(matrix3,3,6));
 	}
 
 }
