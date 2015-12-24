@@ -292,39 +292,172 @@ public class MatrixUtil {
 		if(matrix == null){
 			throw new RuntimeException("matrix cant be null");
 		}
+		guassianEstimate(matrix,xDim,yDim,0);
 
+		printMatrix(array2Matrix(matrix,xDim,yDim),"Row-reduced echelon matrix");
 
-		return 0;
+		return nonZeroRowCnt(matrix,xDim,yDim);
 	}
 
-    private static int guassianEstimate(double[] matrix,int xDim,int yDim){
-        //first,choose the row num which first value is nonzero and max
-        int maxElemPosition = maxElemPositionChoose(matrix,xDim,yDim,0);
-        // then according to the maxElemIndex,begin to transform the remaining row
-        if(maxElemPosition == -1){
-            System.out.println("this is a zero metrix, and its rank is 0");
-            return 0;
-        } else {
-            int mxDim = maxElemPosition/yDim;
-            int myDim = maxElemPosition%yDim;
-            double maxValue = matrix[mxDim*yDim+myDim];
-            //obtain other row with the relevant non-zero column
-            double tmp ;
-            double factor;
-            for(int i=0;i<xDim;i++) {
-                tmp = matrix[i*yDim+myDim];
-                if(i!=mxDim && tmp !=0) { //the non-zero row
-                    factor = (-1)* tmp/maxValue;
-                    for(int j=myDim;j<yDim;j++){
-                        matrix[i*yDim+j] += (matrix[mxDim*yDim+j] * factor);
-                    }
-                }
-            }
-        }
+	public static int nonZeroRowCnt(double[] matrix,int xDim,int yDim){
+		if(matrix == null){
+			throw new RuntimeException("matrix cant be null");
+		}
+		int nonZeroRow = 0;
+		for(int i=0;i<xDim;i++) {
+			for (int j = 0; j < yDim; j++) {
+				if(matrix[i * yDim + j] != 0){
+					nonZeroRow ++;
+					break;
+				}
+			}
+		}
+		return nonZeroRow;
+	}
+	/**
+	 * using Guassian Estimate method to convert matrix to a row-reduced echelon matrix
+	 * so we can use the echelon matrix computing the rank ,etc.
+	 * @param matrix
+	 * @param xDim
+	 * @param yDim
+	 */
+    public  static void guassianEstimate(double[] matrix,int xDim,int yDim,int startColumnIndex){
+        //first,choose the row number which first value is nonzero and max and before the column postion,all value is zero.
+		//for example: if we want be the column 2 ,so [0 0 1 3] match the condition ,but [0 1 1 3] does not match.
+		double maxValue = 0;
+		double tempValue;
+		int maxRowIndex = 0;
+		for(int i=0;i<xDim;i++){
+			tempValue = Math.abs(matrix[i*yDim+startColumnIndex]);
+			// we also need to check the column before startColumnIndex elem is all zero ,if not ,skip it.
+			boolean allZero = true;
+			for(int j=0;j<startColumnIndex;j++){
+				if(matrix[i*yDim+j] != 0)  {
+					allZero = false;
+					break;
+				}
+			}
+			if( tempValue > maxValue && allZero) {
+				maxValue = tempValue;
+				maxRowIndex = i;
+			}
+		}
+		//all the first elem in each row is zero,we should consider the next column value.
+		if(maxValue == 0) {
+			if((++startColumnIndex)<=yDim-1){
+				guassianEstimate(matrix, xDim, yDim, startColumnIndex);
+			} else {
+				// all columns max value is zero. that means its a zero matrix.
+				System.out.println("all columns max value is zero. that means its a zero matrix.");
+			}
+		} else {
+			int maxElemPosition = maxRowIndex*yDim+startColumnIndex;
+			int mxDim = maxElemPosition/yDim;
+			int myDim = maxElemPosition%yDim;
 
-        return 0;
+			System.out.println("max value : "+maxValue +" and it`s position is :("+mxDim+","+myDim+")");
+
+			//obtain other row with the relevant non-zero column
+			double tmp ;
+			double factor;
+			for(int i=0;i<xDim;i++) {
+				tmp = matrix[i*yDim+myDim];
+				if(i!=mxDim && tmp !=0) { //the non-zero row
+					factor = (-1)* tmp/maxValue;
+					for(int j=myDim;j<yDim;j++){
+						matrix[i*yDim+j] += (matrix[mxDim*yDim+j] * factor);
+					}
+				}
+			}
+
+			if((++startColumnIndex)<=yDim-1) {
+				guassianEstimate(matrix, xDim, yDim, startColumnIndex);
+			} else {
+				//simplest the matrix such as :[0 0 7 0 ; 0 0 0 8;6 0 0 0] ,the simplest form is :[0 0 1 0; 0 0 0 1;1 0 0 0]
+				double[] rowVector;
+				for(int i=0;i<xDim;i++){
+					rowVector = new double[yDim];
+					for(int j=0;j<yDim;j++){
+						rowVector[j] = matrix[i*yDim+j];
+					}
+					double mxGcd = maxGCD(rowVector);
+					for(int j=0;j<yDim;j++){
+						matrix[i*yDim+j] = matrix[i*yDim+j]/mxGcd;
+					}
+				}
+			}
+		}
     }
 
+	/**
+	 * find the greatest common divisor (GCD)
+	 * @param array
+	 * @return
+	 */
+	public static double maxGCD(double[] array){
+		if(array == null){
+			throw new RuntimeException("array cant be null");
+		}
+		double minest = Double.MAX_VALUE;
+		boolean allZero = true;
+		for(int i=0;i<array.length;i++){
+			if(array[i] != 0){
+				minest = Math.min(array[i],minest);
+				allZero = false;
+			}
+		}
+		if(allZero){
+			return 1;
+		}
+		Double[] divisors = findDivisors(minest); //divisor has been sorted desc
+
+		double maxGCD = 1;
+		for(int k=0;k<divisors.length;k++){
+			boolean isMaxPosition = true;
+			for(int j=0;j<array.length;j++){
+				if(array[j] == 0){
+					continue;
+				} else if(array[j] % divisors[k] != 0) {
+					isMaxPosition = false;
+				}
+			}
+			if(isMaxPosition){
+				maxGCD = divisors[k];
+				break;
+			}
+		}
+		return maxGCD;
+	}
+
+	/**
+	 * find divisor
+	 * @return
+	 */
+	public static Double[] findDivisors(double number){
+		List<Double> divisors = new ArrayList<Double>();
+		if(number == 0){
+			return divisors.toArray(new Double[]{});
+		}
+		divisors.add(number);
+		for(int i=1;i<=Math.ceil(number/2);i++) {
+			if(number%i == 0) {
+				divisors.add(new Double(i));
+			}
+		}
+		// sort desc
+		Collections.sort(divisors);
+		Collections.reverse(divisors);
+
+		return divisors.toArray(new Double[]{});
+	}
+	/**
+	 * find the max element which display in the matrix first
+	 * @param matrix
+	 * @param xDim
+	 * @param yDim
+	 * @param startColumnIndex
+	 * @return
+	 */
     private static int maxElemPositionChoose(double[] matrix,int xDim,int yDim,int startColumnIndex){
         double maxValue = 0;
         double tempValue;
@@ -349,6 +482,26 @@ public class MatrixUtil {
             return maxRowIndex*yDim+startColumnIndex;
         }
     }
+
+	/**
+	 * array to matrix form
+	 * @param array
+	 * @param xDim
+	 * @param yDim
+	 * @return
+	 */
+	public static double[][] array2Matrix(double[] array,int xDim,int yDim){
+		if(array == null){
+			throw new RuntimeException("array cant be null");
+		}
+		double[][] matrix = new double[xDim][yDim];
+		for(int i=0;i<xDim;i++){
+			for(int j=0;j<yDim;j++){
+				matrix[i][j] = array[i*yDim+j];
+			}
+		}
+		return matrix;
+	}
 
 	public static void main(String args[]) {
 		int[] ordinal = {1,2,3,4,5,6,7};
@@ -388,6 +541,20 @@ public class MatrixUtil {
         double[] matrix2 = {0,0,0,0,0,0,0,0,0,0,0,0,0};
         int index = maxElemPositionChoose(matrix2,3,4,0);
         System.out.println("ROW:"+((index/4))+" COLUMN:"+(index%4));
+
+//		double[] matrix3 = {1,2,3,4,5,6,6,8,9};
+		double[] matrix3 = {0,0,-1,8,0,0,2,-11,0,0,2,-3};
+		guassianEstimate(matrix3,3,4,0);
+		printMatrix(array2Matrix(matrix3,3,4),"row-reduced echelon matrix");
+
+		Double[] divisors = findDivisors(8);
+		for(int i =0;i<divisors.length;i++){
+			System.out.print(divisors[i]+",");
+		}
+		System.out.println();
+		System.out.println(maxGCD(new double[]{0, 0, 8, 0}));
+
+		System.out.println("rank : "+rank(matrix3,3,4));
 	}
 
 }
