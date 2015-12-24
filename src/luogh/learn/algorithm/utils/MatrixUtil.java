@@ -295,7 +295,7 @@ public class MatrixUtil {
 
 		printMatrix(array2Matrix(matrix,xDim,yDim),"Original Matrix");
 
-		guassianEstimate(matrix,xDim,yDim,0);
+		guassianEstimate(matrix, xDim, yDim, 0);
 
 		printMatrix(array2Matrix(matrix,xDim,yDim),"Row-reduced echelon matrix");
 
