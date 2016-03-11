@@ -59,7 +59,7 @@ public class FixedPointIterativeMethod {
 		FixedPointIterativeMethod fpim = new FixedPointIterativeMethod();
 		//if g(x) is x^4-2 ,the solution is Infinity but,if g(x) is (x+2)^(1/4) ,
 		//the solution is correct,so,the g(x) play a very important role on the
-		//solution of the Non-Linear Equation.
+		//solution of the Non-Linear Equation,but using the Newton Iterative Method may make a better solution.
 //		double solution1 = fpim.execute("x^4-x-2","x^4-2",1.5,0.00003,0.0000004);
 //		double solution = fpim.execute("x^4-x-2","(x+2)^(1/4)",-2,0.00000000003,0.00000000001);
 		double solution = fpim.execute("x^2-x-2","-(x+2)^(1/2)",-2,0.00000000003,0.00000000001);
